@@ -1,0 +1,51 @@
+import cv2
+from os import path, listdir
+class SlideShow:
+    def _init_(self, source, filter = ['.jpg', '.jpeg', '.png']):
+        if not path.exists(source):
+            raise Exception('Path not found: ' + source)
+
+        self.contents = [source+ '/' +x for x in listdir(source) if path.splitext(x.lower())[1] in filter ]
+        print(self.contents)
+
+    def play(self):
+        cv2.namedWindow('SlideShow')
+        std_size = (1200, 800)
+        i = 0
+        l = len(self.contents)
+        mem_img = None
+        flag = True
+        while flag:
+            if mem_img is None:
+                #load the image
+                mem_img = cv2.imread(self.contents[i], cv2.IMREAD_COLOR)
+                #resize it to a std size
+                mem_img = cv2.resize(mem_img, std_size, interpolation=cv2.INTER_AREA)
+            else:
+                mem_img = next_img
+
+            #render
+            cv2.imshow('SlideShow', mem_img)
+            cv2.waitKey(1000)
+            i+=1 #next
+            if i < l:
+                next_img = cv2.imread(self.contents[i], cv2.IMREAD_COLOR)
+                #resize it to a std size
+                next_img= cv2.resize(next_img, std_size, interpolation=cv2.INTER_AREA)
+                #blend to create a transition
+                for x in range(1, 101):
+                    alpha = 0.01 * x
+                    beta = 1 - alpha
+                    blend = cv2.addWeighted(next_img, alpha, mem_img, beta, 0)
+                    #render the blend
+                    cv2.imshow('SlideShow', blend)
+                    cv2.waitKey(10)
+            else:
+                flag = False
+
+        cv2.waitKey(1000)
+        cv2.destroyWindow('SlideShow')
+
+
+ss = SlideShow('d:/images')
+ss.play()
